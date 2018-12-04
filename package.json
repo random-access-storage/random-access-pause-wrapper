@@ -1,0 +1,21 @@
+{
+  "name": "random-access-pause-wrapper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard && tape *.test.js"
+  },
+  "keywords": [],
+  "author": "Martin Heidegger <martin.heidegger@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "inherits": "^2.0.3",
+    "random-access-storage": "^1.3.0"
+  },
+  "devDependencies": {
+    "random-access-memory": "^3.0.0",
+    "standard": "^12.0.1",
+    "tape": "^4.9.1"
+  }
+}
