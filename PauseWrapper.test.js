@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const tape = require('tape')
+const EventEmitter = require('events').EventEmitter
 const PauseWrapper = require('./PauseWrapper.js')
 
 tape('Pause order events', function (t) {
@@ -109,4 +110,120 @@ tape('._onResumeCb', function (t) {
   })
   stack.push('resume()')
   wrapper.resume()
+})
+
+tape('events are not emitted on pause', function (t) {
+  const wrapper = new PauseWrapper(new EventEmitter())
+  const stack = []
+  const somedata = {}
+  wrapper.on('some-event', function (data) {
+    stack.push('event[some-event]')
+    t.equals(data, somedata)
+  })
+  stack.push('pause()')
+  wrapper.pause()
+  wrapper.emit('some-event', somedata)
+  wrapper._onResume(function a () {
+    stack.push('a()')
+  })
+  stack.push('resume()')
+  wrapper.resume()
+  t.deepEquals(stack, [
+    'pause()',
+    'resume()',
+    'event[some-event]',
+    'a()'
+  ])
+  t.end()
+})
+
+tape('Closing the wrapper stops all events', function (t) {
+  const wrapper = new PauseWrapper(new EventEmitter())
+  const stack = []
+
+  t.equals(wrapper._closed, false, 'even though private "_closed" should be predictable')
+
+  stackEvent('some-event')
+  stackEvent('close')
+  stackEvent('destroy')
+  wrapper.emit('some-event')
+  wrapper._onResumeCb(function cb () {
+    t.fail('This is called even though it should be closed by now')
+  }, function a (cb2) {
+    stack.push('a()')
+    setImmediate(cb2)
+  })
+  stack.push('._closed = true')
+  wrapper._closed = true
+  wrapper.emit('some-event')
+  wrapper.emit('close')
+  wrapper.emit('destroy')
+  wrapper._onResume(function () {
+    t.fail('This is called even though it was closed before')
+  })
+
+  // Give it some time, to make sure that the callback has run
+  // properly.
+  setTimeout(function () {
+    t.deepEqual(stack, [
+      'event[some-event]',
+      'a()',
+      '._closed = true',
+      'event[close]',
+      'event[destroy]'
+    ])
+    t.end()
+  }, 10) // 10ms should be enough.
+
+  function stackEvent (eventName) {
+    wrapper.on(eventName, function () { stack.push('event[' + eventName + ']') })
+  }
+})
+
+tape('pause on resume', function (t) {
+  const wrapper = new PauseWrapper(new EventEmitter())
+  const stack = []
+
+  stackEvent('pause')
+  stackEvent('resume')
+
+  stack.push('pause()')
+  wrapper.pause()
+  wrapper._onResume(function firstResume () {
+    stack.push('firstResume()')
+    stack.push('pause()')
+    wrapper.pause()
+    wrapper._onResume(function thirdResume () {
+      stack.push('thirdResume()')
+      t.deepEquals(stack, [
+        'pause()',
+        'event[pause]',
+        'resume()',
+        'event[resume]',
+        'firstResume()',
+        'pause()',
+        'event[pause]',
+        'timeout()',
+        'resume()',
+        'event[resume]',
+        'secondResume()',
+        'thirdResume()'
+      ])
+      t.end()
+    })
+    setTimeout(function timeout () {
+      stack.push('timeout()')
+      stack.push('resume()')
+      wrapper.resume()
+    })
+  })
+  wrapper._onResume(function secondResume () {
+    stack.push('secondResume()')
+  })
+  stack.push('resume()')
+  wrapper.resume()
+
+  function stackEvent (eventName) {
+    wrapper.on(eventName, function () { stack.push('event[' + eventName + ']') })
+  }
 })
