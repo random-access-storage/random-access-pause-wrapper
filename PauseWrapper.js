@@ -63,23 +63,21 @@ Object.assign(PauseWrapper.prototype, {
       return false
     }
     this._paused = paused
-    if (paused) {
-      this._pauseStack = []
-    } else {
-      while (this._pauseStack) {
-        var pauseStack = this._pauseStack
-        delete this._pauseStack
-        while (pauseStack.length > 0) {
-          var handler = pauseStack.shift()
-          handler()
-        }
-      }
-    }
     this.emit('paused', paused)
     if (paused) {
       this.emit('pause')
     } else {
       this.emit('resume')
+    }
+    if (paused) {
+      if (this._pauseStack === undefined) {
+        this._pauseStack = []
+      }
+    } else {
+      while (this._pauseStack.length > 0 && !this._paused) {
+        var handler = this._pauseStack.shift()
+        handler()
+      }
     }
     return true
   },
