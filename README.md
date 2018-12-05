@@ -1,7 +1,7 @@
 # random-access-pause-wrapper
 
-Wraps any [random-access-storage](https://github.com/random-access-storage/random-access-storage) instance and adds a `pause()` and `resume()` method
-that 
+Wraps any [random-access-storage](https://github.com/random-access-storage/random-access-storage) instance and adds a `pause()` 
+and `resume()` method to pause the execution of operations and continue at a later point.
 
 ```
 npm install random-access-pause-wrapper
