@@ -33,7 +33,7 @@ Object.assign(PauseWrapper.prototype, {
   _onResumeCb: function (cb, handler) {
     var scope = this
     this._onResume(function () {
-      handler.call(this, function (err, data) {
+      handler.call(scope, function (err, data) {
         scope._onResume(function () {
           if (!cb) return
           cb.call(scope, err, data)
