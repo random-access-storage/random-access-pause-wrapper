@@ -36,27 +36,30 @@ tape('once', function (t) {
   t.end()
 })
 
-tape('prepend once', function (t) {
-  var target = new events.EventEmitter()
-  var proxy = new EventProxy(target)
-  var count = 0
-  target.addListener('hello', function () {
-    count += 1
+// Node 4 compatibility
+if (events.EventEmitter.prototype.prependOnceListener) {
+  tape('prepend once', function (t) {
+    var target = new events.EventEmitter()
+    var proxy = new EventProxy(target)
+    var count = 0
+    target.addListener('hello', function () {
+      count += 1
+    })
+    proxy.addListener('hello', function () {
+      count += 2
+    })
+    var addResult = proxy.prependOnceListener('hello', function (data) {
+      t.equals(count, 1, 'event called once, before the listeners on proxy, after the listeners on target')
+      t.equals(data, 'world', 'data passed through')
+      count += 1
+    })
+    t.equals(addResult, proxy, 'Result of prepend once is proxy instance')
+    target.emit('hello', 'world')
+    target.emit('hello', 'mundo')
+    t.equals(count, 7)
+    t.end()
   })
-  proxy.addListener('hello', function () {
-    count += 2
-  })
-  var addResult = proxy.prependOnceListener('hello', function (data) {
-    t.equals(count, 1, 'event called once, before the listeners on proxy, after the listeners on target')
-    t.equals(data, 'world', 'data passed through')
-    count += 1
-  })
-  t.equals(addResult, proxy, 'Result of prepend once is proxy instance')
-  target.emit('hello', 'world')
-  target.emit('hello', 'mundo')
-  t.equals(count, 7)
-  t.end()
-})
+}
 
 tape('remove all listeners', function (t) {
   var target = new events.EventEmitter()

@@ -49,11 +49,6 @@ Object.assign(EventProxy.prototype, {
     this._initEventProxy(eventName)
     return this
   },
-  prependListener: function (eventName, listener) {
-    EventEmitter.prototype.prependListener.call(this, eventName, listener)
-    this._initEventProxy(eventName)
-    return this
-  },
   removeListener: function (eventName, listener) {
     EventEmitter.prototype.removeListener.call(this, eventName, listener)
     this._exitEventProxy(eventName)
@@ -76,14 +71,6 @@ Object.assign(EventProxy.prototype, {
     }
     return this.addListener(eventName, wrapper)
   },
-  prependOnceListener: function (eventName, listener) {
-    var self = this
-    var wrapper = function (payload) {
-      listener(payload)
-      self.removeListener(eventName, wrapper)
-    }
-    return this.prependListener(eventName, wrapper)
-  },
   on: function (eventName, listener) {
     return this.addListener(eventName, listener)
   },
@@ -91,3 +78,22 @@ Object.assign(EventProxy.prototype, {
     return this.removeListener(eventName, listener)
   }
 })
+
+// Node 4 compatibility
+if (EventEmitter.prototype.prependListener) {
+  Object.assign(EventProxy.prototype, {
+    prependListener: function (eventName, listener) {
+      EventEmitter.prototype.prependListener.call(this, eventName, listener)
+      this._initEventProxy(eventName)
+      return this
+    },
+    prependOnceListener: function (eventName, listener) {
+      var self = this
+      var wrapper = function (payload) {
+        listener(payload)
+        self.removeListener(eventName, wrapper)
+      }
+      return this.prependListener(eventName, wrapper)
+    }
+  })
+}
