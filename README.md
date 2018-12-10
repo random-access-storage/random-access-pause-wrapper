@@ -7,7 +7,7 @@ and `resume()` method to pause the execution of operations and continue at a lat
 npm install random-access-pause-wrapper
 ```
 
-[![build status](http://img.shields.io/travis/random-access-storage/random-access-pause-wrapper.svg?style=flat)](http://travis-ci.org/martinheidegger/random-access-pause-wrapper)
+[![build status](http://img.shields.io/travis/random-access-storage/random-access-pause-wrapper.svg?style=flat)](http://travis-ci.org/random-access-storage/random-access-pause-wrapper)
 
 ## Usage
 
