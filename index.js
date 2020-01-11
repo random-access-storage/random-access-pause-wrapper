@@ -21,6 +21,8 @@ function RASPauseWrapper (ras) {
 
 inherits(RASPauseWrapper, PauseWrapper)
 
+function noop () { }
+
 Object.assign(RASPauseWrapper.prototype, {
   open: function (cb) {
     var scope = this
@@ -33,7 +35,11 @@ Object.assign(RASPauseWrapper.prototype, {
     })
   },
   read: function (offset, size, cb) {
-    this._onResumeCb(cb, function (cbProxy) { this._proxied.read(offset, size, cbProxy) })
+    if (size === 0) {
+      this._onResumeCb(cb, function (cbProxy) { cbProxy(null, Buffer.alloc(0)) })
+    } else {
+      this._onResumeCb(cb, function (cbProxy) { this._proxied.read(offset, size, cbProxy) })
+    }
   },
   write: function (offset, buffer, cb) {
     this._onResumeCb(cb, function (cbProxy) { this._proxied.write(offset, buffer, cbProxy) })
@@ -54,6 +60,7 @@ Object.assign(RASPauseWrapper.prototype, {
     })
   },
   destroy: function (cb) {
+    cb = cb || noop
     this._closed = true
     var scope = this
     return this._proxied.destroy(function (err) {
