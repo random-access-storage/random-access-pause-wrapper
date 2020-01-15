@@ -1,7 +1,24 @@
 #!/usr/bin/env node
 const tape = require('tape')
+const randomTest = require('random-access-test')
 const ram = require('random-access-memory')
+const randomFile = require('random-access-file')
 const pauseWrap = require('.')
+
+var opts = {
+  writable: true,
+  reopen: true,
+  del: true,
+  truncate: false,
+  size: true,
+  content: false,
+  dir: '/tmp/random-pause-test'
+}
+
+randomTest(function (filename, opts2, callback) {
+  var storage = randomFile(opts.dir + '/' + filename, opts2)
+  callback(pauseWrap(storage))
+}, opts)
 
 function pauseRam (buffer) {
   return pauseWrap(ram(buffer))
